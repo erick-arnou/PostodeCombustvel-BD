@@ -1,0 +1,7 @@
+CREATE TABLE categoria_produto (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    nome VARCHAR(100) NOT NULL UNIQUE,
+
+    descricao TEXT
+);

@@ -12,3 +12,8 @@ services:
 
     ports:
       - "5432:5432"
+
+    volumes:
+    - ../database/DDLs/runDDLs.sql
+
+    #revisar esse volume

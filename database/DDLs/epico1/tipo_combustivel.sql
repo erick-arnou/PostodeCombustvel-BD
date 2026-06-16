@@ -1,0 +1,6 @@
+CREATE TABLE tipo_combustivel (
+
+    id BIGSERIAL PRIMARY KEY,
+
+    nome VARCHAR(100) NOT NULL UNIQUE
+);

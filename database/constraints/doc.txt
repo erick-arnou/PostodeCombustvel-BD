@@ -1,0 +1,6 @@
+#alguém pode ficar responsável por fazer as restrições de cada DDL por épico e deixar em registro aqui
+
+#ex:
+
+
+# epico 1: fulano -> últimas modificações em dd/mm

@@ -1,9 +1,0 @@
-\i /ddl/epico3/categoria_produto.sql
-\i /ddl/epico3/subcategoria_produto.sql
-\i /ddl/epico3/fornecedor.sql
-\i /ddl/epico3/produto.sql
-\i /ddl/epico3/fornecedor_produto.sql
-\i /ddl/epico3/historico_preco_produto.sql
-\i /ddl/epico3/oleo_lubrificante.sql
-\i /ddl/epico3/nota_fiscal_entrada.sql
-\i /ddl/epico3/item_nota_fiscal.sql

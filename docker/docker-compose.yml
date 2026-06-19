@@ -1,19 +1,17 @@
 services:
+
   postgres:
     image: postgres:17
 
+    container_name: posto-db
+
     env_file:
       - ../.env
-
-    environment:
-      POSTGRES_USER: BD2026.1
-      POSTGRES_PASSWORD: BD2026.1
-      POSTGRES_DB: BD2026.1
 
     ports:
       - "5432:5432"
 
     volumes:
-    - ../database/DDLs/runDDLs.sql
+      - ../database/DDLs:/docker-entrypoint-initdb.d
 
-    #revisar esse volume
+    restart: unless-stopped

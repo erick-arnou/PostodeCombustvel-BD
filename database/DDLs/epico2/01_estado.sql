@@ -1,0 +1,4 @@
+CREATE TABLE estado (
+    id_est INT PRIMARY KEY NOT NULL,
+    nome VARCHAR(100)  NOT NULL
+);

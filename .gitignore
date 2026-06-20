@@ -1,0 +1,29 @@
+# Dependências do Node (nunca enviar a pasta node_modules)
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Variáveis de ambiente e credenciais locais (segurança!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs do sistema e do Nodemon
+logs
+*.log
+.npm
+.eslintcache
+
+# Arquivos de sistema operacional (lixo do Windows/Mac)
+.DS_Store
+Thumbs.db
+
+# Arquivos gerados automaticamente pelo Prisma (Opcional, mas recomendado)
+# Mantemos o schema.prisma, mas ignoramos arquivos SQLite locais se houver teste
+*.db
+*.db-journal

@@ -1,0 +1,275 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ÉPICO 1: Infraestrutura e Operação (Pátio)
+// ==========================================
+
+model TipoCombustivel {
+  id        BigInt    @id @default(autoincrement())
+  nome      String    @unique @db.VarChar(100)
+  
+  historico HistoricoPrecoCombustivel[]
+  tanques   Tanque[]
+
+  @@map("tipo_combustivel")
+}
+
+model HistoricoPrecoCombustivel {
+  id                  BigInt    @id @default(autoincrement())
+  preco               Decimal   @db.Decimal(10, 2)
+  data_inicio_preco   DateTime  @db.Date
+  data_fim_preco      DateTime? @db.Date
+  tipo_combustivel_id BigInt
+  
+  tipo_combustivel    TipoCombustivel @relation(fields: [tipo_combustivel_id], references: [id])
+
+  @@map("historico_preco_combustivel")
+}
+
+model Tanque {
+  id                  BigInt    @id @default(autoincrement())
+  tipo_combustivel_id BigInt
+  capacidade_litros   Decimal   @db.Decimal(10, 2)
+  volume_atual_litros Decimal   @db.Decimal(10, 2)
+  
+  tipo_combustivel    TipoCombustivel @relation(fields: [tipo_combustivel_id], references: [id])
+  bicos               Bico[]
+
+  @@map("tanque")
+}
+
+model Bomba {
+  id          BigInt    @id @default(autoincrement())
+  ativa       Boolean   @default(true)
+  
+  bicos       Bico[]
+  manutencoes ManutencaoBomba[]
+
+  @@map("bomba")
+}
+
+model ManutencaoBomba {
+  id                     BigInt    @id @default(autoincrement())
+  bomba_id               BigInt
+  data_ultima_manutencao DateTime  @db.Date
+  data_prox_manutencao   DateTime? @db.Date
+  descricao              String?   @db.Text
+  
+  bomba                  Bomba     @relation(fields: [bomba_id], references: [id])
+
+  @@map("manutencao_bomba")
+}
+
+model Bico {
+  id                     BigInt    @id @default(autoincrement())
+  bomba_id               BigInt
+  tanque_id              BigInt
+  odometro_abastecimento Decimal   @db.Decimal(12, 3)
+  
+  bomba                  Bomba     @relation(fields: [bomba_id], references: [id])
+  tanque                 Tanque    @relation(fields: [tanque_id], references: [id])
+  afericoes              AfericaoBico[]
+
+  @@map("bico")
+}
+
+model AfericaoBico {
+  id                   BigInt    @id @default(autoincrement())
+  bico_id              BigInt
+  data_ultima_afericao DateTime  @db.Date
+  data_prox_afericao   DateTime? @db.Date
+  descricao            String?   @db.Text
+  
+  bico                 Bico      @relation(fields: [bico_id], references: [id])
+
+  @@map("afericao_bico")
+}
+
+// ==========================================
+// ÉPICO 2: Recursos Humanos e Endereços
+// ==========================================
+
+model Estado {
+  id_est      Int          @id @default(autoincrement())
+  nome        String       @db.VarChar(100)
+  
+  cidades     Cidade[]
+  logradouros Logradouro[]
+
+  @@map("estado")
+}
+
+model Cidade {
+  id_cid      Int          @id @default(autoincrement())
+  nome        String       @db.VarChar(100)
+  id_est      Int
+  
+  estado      Estado       @relation(fields: [id_est], references: [id_est])
+  bairros     Bairro[]
+  logradouros Logradouro[]
+
+  @@map("cidade")
+}
+
+model Bairro {
+  id_bair     Int          @id @default(autoincrement())
+  nome        String       @db.VarChar(200)
+  cep         String       @db.Char(9)
+  id_cid      Int
+  
+  cidade      Cidade       @relation(fields: [id_cid], references: [id_cid])
+  logradouros Logradouro[]
+
+  @@map("bairro")
+}
+
+model Logradouro {
+  id_end       Int           @id @default(autoincrement())
+  n_rua        String        @db.VarChar(200)
+  n_casa       String        @db.VarChar(4)
+  id_bair      Int
+  id_cid       Int
+  id_est       Int
+  
+  bairro       Bairro        @relation(fields: [id_bair], references: [id_bair])
+  cidade       Cidade        @relation(fields: [id_cid], references: [id_cid])
+  estado       Estado        @relation(fields: [id_est], references: [id_est])
+  
+  funcionarios Funcionario[]
+  clientes     Cliente[]
+
+  @@map("logradouro")
+}
+
+model Permissao {
+  id_perm     Int              @id @default(autoincrement())
+  nome        String           @db.Char(200)
+  descricao   String           @db.Char(400)
+  
+  cargos      CargoPermissao[]
+
+  @@map("permissao")
+}
+
+model Cargos {
+  id_cargo     Int              @id @default(autoincrement())
+  nome         String           @db.Char(200)
+  descricao    String           @db.Char(400)
+  
+  permissoes   CargoPermissao[]
+  funcionarios Funcionario[]
+
+  @@map("cargos")
+}
+
+model CargoPermissao {
+  id_c_perm   Int       @id @default(autoincrement())
+  id_cargo    Int
+  id_perm     Int
+  
+  cargo       Cargos    @relation(fields: [id_cargo], references: [id_cargo])
+  permissao   Permissao @relation(fields: [id_perm], references: [id_perm])
+
+  @@map("cargo_permissao")
+}
+
+model Funcionario {
+  id_func       Int              @id @default(autoincrement())
+  nome          String           @db.Char(200)
+  id_cargo      Int
+  id_end        Int
+  
+  cargo         Cargos           @relation(fields: [id_cargo], references: [id_cargo])
+  logradouro    Logradouro       @relation(fields: [id_end], references: [id_end])
+  escalas       EscalaTrabalho[]
+
+  @@map("funcionario")
+}
+
+model Turno {
+  id_turno    Int              @id @default(autoincrement())
+  descricao   String           @db.VarChar(200)
+  hora_inicio DateTime         @db.Time
+  hora_fim    DateTime         @db.Time
+  
+  escalas     EscalaTrabalho[]
+
+  @@map("turno")
+}
+
+model EscalaTrabalho {
+  id_escala      Int          @id @default(autoincrement())
+  id_func        Int
+  id_turno       Int
+  data           DateTime     @db.Date
+  
+  funcionario    Funcionario  @relation(fields: [id_func], references: [id_func])
+  turno          Turno        @relation(fields: [id_turno], references: [id_turno])
+  caixas         CaixaTurno[]
+
+  @@map("escala_trabalho")
+}
+
+model CaixaTurno {
+  id_caixa      Int            @id @default(autoincrement())
+  id_escala     Int
+  saldo_inicial Decimal        @db.Decimal(10, 2)
+  saldo_final   Decimal?       @db.Decimal(10, 2)
+  abertura      DateTime       @default(now()) @db.Timestamp()
+  fechamento    DateTime?      @db.Timestamp()
+  quebra        Decimal?       @db.Decimal(10, 2)
+  
+  escala        EscalaTrabalho @relation(fields: [id_escala], references: [id_escala])
+
+  @@map("caixa_turno")
+}
+
+// ==========================================
+// ÉPICO 2 (Continuação): Clientes, Frota e Pagamentos
+// ==========================================
+
+model Cliente {
+  id_cliente  Int        @id @default(autoincrement())
+  nome        String     @db.VarChar(200)
+  cpf_cnpj    String     @unique @db.VarChar(18)
+  telefone    String?    @db.VarChar(20)
+  email       String?    @db.VarChar(150)
+  id_end      Int
+  
+  logradouro  Logradouro @relation(fields: [id_end], references: [id_end])
+  veiculos    Veiculo[]
+
+  @@map("cliente")
+}
+
+model Veiculo {
+  id_veiculo       Int     @id @default(autoincrement())
+  placa            String  @unique @db.VarChar(10)
+  modelo           String  @db.VarChar(100)
+  marca            String  @db.VarChar(100)
+  ano              Int
+  tipo_combustivel String  @db.VarChar(50)
+  id_cliente       Int
+  
+  cliente          Cliente @relation(fields: [id_cliente], references: [id_cliente])
+
+  @@map("veiculo")
+}
+
+model Pagamento {
+  id_pagamento    Int      @id @default(autoincrement())
+  forma_pagamento String   @db.VarChar(50)
+  valor           Decimal  @db.Decimal(10, 2)
+  data            DateTime @db.Date
+  status          String   @db.VarChar(50)
+
+  @@map("pagamento")
+}
+

@@ -21,6 +21,10 @@ const escalaTrabalhoController = require('./controllers/epico2/escalaTrabalhoCon
 const permissaoController = require('./controllers/epico2/permissaoController');
 const cargoPermissaoController = require('./controllers/epico2/cargoPermissaoController');
 
+// === IMPORTS DO RELATÓRIOS (os que vem daquelas 3 endpoints la do final do documento) ===
+
+const relatorioController = require('./controllers/relatorios/relatorioController');
+
 const app = express();
 
 BigInt.prototype.toJSON = function () {
@@ -97,9 +101,15 @@ app.post('/permissoes', permissaoController.criar);
 app.get('/cargos-permissoes', cargoPermissaoController.listar);
 app.post('/cargos-permissoes', cargoPermissaoController.criar);
 
+
+// === ROTAS RELATÓRIO:  ===
+app.get('/relatorios/vendas-turno', relatorioController.vendasPorTurno);
+app.get('/relatorios/estoque-critico', relatorioController.estoqueCritico);
+app.get('/relatorios/extrato-frota', relatorioController.extratoFrota);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 SERVIDOR RODANDO: Épico 1 & Início do Épico 2!`);
-  console.log(`==================================================`);
+  console.log(`=============================================================`);
+  console.log(`🚀 SERVIDOR RODANDO: Teste em rodar apenas o relátorio em si`);
+  console.log(`=============================================================`); 
 });

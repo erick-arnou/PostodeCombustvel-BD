@@ -73,8 +73,8 @@ model Bico {
   tanque_id              BigInt
   odometro_abastecimento Decimal   @db.Decimal(12, 3)
   
-  bomba                  Bomba     @relation(fields: [bomba_id], references: [id])
-  tanque                 Tanque    @relation(fields: [tanque_id], references: [id])
+  bomba                  Bomba        @relation(fields: [bomba_id], references: [id])
+  tanque                 Tanque       @relation(fields: [tanque_id], references: [id])
   afericoes              AfericaoBico[]
 
   @@map("bico")
@@ -141,7 +141,6 @@ model Logradouro {
   bairro       Bairro        @relation(fields: [id_bair], references: [id_bair])
   cidade       Cidade        @relation(fields: [id_cid], references: [id_cid])
   estado       Estado        @relation(fields: [id_est], references: [id_est])
-  
   funcionarios Funcionario[]
   clientes     Cliente[]
 
@@ -213,6 +212,7 @@ model EscalaTrabalho {
   funcionario    Funcionario  @relation(fields: [id_func], references: [id_func])
   turno          Turno        @relation(fields: [id_turno], references: [id_turno])
   caixas         CaixaTurno[]
+  vendas         Venda[]
 
   @@map("escala_trabalho")
 }
@@ -245,6 +245,7 @@ model Cliente {
   
   logradouro  Logradouro @relation(fields: [id_end], references: [id_end])
   veiculos    Veiculo[]
+  vendas      Venda[]
 
   @@map("cliente")
 }
@@ -259,6 +260,7 @@ model Veiculo {
   id_cliente       Int
   
   cliente          Cliente @relation(fields: [id_cliente], references: [id_cliente])
+  vendas           Venda[]
 
   @@map("veiculo")
 }
@@ -273,3 +275,121 @@ model Pagamento {
   @@map("pagamento")
 }
 
+// ==========================================
+// ÉPICO 3: Produtos e Estoque
+// ==========================================
+
+model CategoriaProduto {
+  id            Int                   @id @default(autoincrement())
+  nome          String                @unique @db.VarChar(100)
+  descricao     String?               @db.Text
+
+  subcategorias SubcategoriaProduto[]
+
+  @@map("categoria_produto")
+}
+
+model SubcategoriaProduto {
+  id                   Int              @id @default(autoincrement())
+  categoria_produto_id Int
+  nome                 String           @db.VarChar(100)
+  descricao            String?          @db.Text
+
+  categoria            CategoriaProduto @relation(fields: [categoria_produto_id], references: [id])
+  produtos             Produto[]
+
+  @@map("subcategoria_produto")
+}
+
+model Produto {
+  id                      Int                     @id @default(autoincrement())
+  subcategoria_produto_id Int
+  nome                    String                  @db.VarChar(150)
+  codigo                  String                  @unique @db.VarChar(50)
+  descricao               String?                 @db.Text
+  estoque_atual           Decimal                 @db.Decimal(10, 2)
+  estoque_minimo          Decimal                 @db.Decimal(10, 2)
+  ativo                   Boolean                 @default(true)
+
+  subcategoria            SubcategoriaProduto     @relation(fields: [subcategoria_produto_id], references: [id])
+  oleo_lubrificante       OleoLubrificante?
+  historico_precos        HistoricoPrecoProduto[]
+  itens_venda             ItemVendaProduto[]
+
+  @@map("produto")
+}
+
+model OleoLubrificante {
+  produto_id  Int     @id
+  viscosidade String  @db.VarChar(20)
+  base        String  @db.VarChar(50)
+  aplicacao   String  @db.VarChar(100)
+
+  produto     Produto @relation(fields: [produto_id], references: [id])
+
+  @@map("oleo_lubrificante")
+}
+
+model HistoricoPrecoProduto {
+  id          Int       @id @default(autoincrement())
+  produto_id  Int
+  preco_venda Decimal   @db.Decimal(10, 2)
+  ativo       Boolean   @default(true)
+  data_inicio DateTime  @db.Date
+  data_fim    DateTime? @db.Date
+
+  produto     Produto   @relation(fields: [produto_id], references: [id])
+
+  @@map("historico_preco_produto")
+}
+
+// ==========================================
+// ÉPICO 5: Vendas
+// ==========================================
+
+model Venda {
+  id                Int                    @id @default(autoincrement())
+  id_escala         Int
+  id_cliente        Int?
+  id_veiculo        Int?
+  data_hora         DateTime               @default(now())
+  valor_total       Decimal                @db.Decimal(10, 2)
+  status            String                 @db.VarChar(20)
+
+  escala            EscalaTrabalho         @relation(fields: [id_escala], references: [id_escala])
+  cliente           Cliente?               @relation(fields: [id_cliente], references: [id_cliente])
+  veiculo           Veiculo?               @relation(fields: [id_veiculo], references: [id_veiculo])
+  itens_produto     ItemVendaProduto[]
+  itens_combustivel ItemVendaCombustivel[]
+
+  @@map("venda")
+}
+
+model ItemVendaCombustivel {
+  id                  Int     @id @default(autoincrement())
+  id_venda            Int
+  id_bico             BigInt
+  id_tanque           BigInt
+  id_tipo_combustivel BigInt
+  litros              Decimal @db.Decimal(10, 3)
+  valor_unitario      Decimal @db.Decimal(10, 2)
+  valor_total         Decimal @db.Decimal(10, 2)
+
+  venda               Venda   @relation(fields: [id_venda], references: [id])
+
+  @@map("item_venda_combustivel")
+}
+
+model ItemVendaProduto {
+  id             Int     @id @default(autoincrement())
+  id_venda       Int
+  id_produto     Int
+  quantidade     Decimal @db.Decimal(10, 2)
+  valor_unitario Decimal @db.Decimal(10, 2)
+  valor_total    Decimal @db.Decimal(10, 2)
+
+  venda          Venda   @relation(fields: [id_venda], references: [id])
+  produto        Produto @relation(fields: [id_produto], references: [id])
+
+  @@map("item_venda_produto")
+}

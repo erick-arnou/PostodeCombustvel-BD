@@ -27,7 +27,7 @@ class RelatorioController {
       const resultado = await relatorioService.extratoFrota(mes, ano);
       return res.status(200).json(resultado);
     } catch (erro) {
-      return res.status(400).json({ erro: erro.message });
+      return res.status(400).json({ erro: 'Erro ao gerar relatório de extrato de frota', detalhes: erro.message });
     }
   }
 }
